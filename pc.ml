@@ -5,7 +5,7 @@
  *)
 
 (* general list-processing procedures *)
-
+#use "reader.ml"
 let rec ormap f s =
   match s with
   | [] -> false
@@ -183,6 +183,88 @@ let trace_pc desc nt s =
 let test_string nt str =
   let (e, s) = (nt (string_to_list str)) in
   (e, (Printf.sprintf "->[%s]" (list_to_string s)));;
+
+  (*my functions*)
+
+
+let make_first_list = fun (e, lst1) -> ([e], lst1);;
+
+let make_paired nt_left nt_right nt =
+  let nt = caten nt_left nt in
+  let nt = pack nt (function (_, e) -> e) in
+  let nt = caten nt nt_right in
+  let nt = pack nt (function (e, _) -> e) in
+  nt;;
+
+let nt_whitespace = const (fun ch -> ch <= ' ');;
+
+let make_spaced nt = make_paired (star nt_whitespace) (star nt_whitespace) nt
+
+
+let nt_boolean s = 
+  let nt = make_spaced (disj (word "#T") (disj (word "#F") (disj (word "#f") (word "#t")))) in
+  let nt = (match (nt (string_to_list s)) with
+          | ['#'; 'f'], _ -> Bool(false)
+          | ['#'; 't'], _ -> Bool(true)
+          | ['#'; 'F'], _ -> Bool(false)
+          | ['#'; 'T'], _ -> Bool(true)
+          | _ -> raise X_no_match) in
+  nt;;
+
+let nt_digits = (plus (range '0' '9'))
+
+let nt_integer s = 
+  let nt = (caten (disj (word "+") (word "-")) nt_digits) in
+  let nt = (match (nt (string_to_list s)) with
+        | ((list1, list2), list3) -> (List.append list1 list2), list3) in
+  nt;; 
+
+let nt_float s = 
+  let nt = (caten nt_integer (word ".")) in
+  let integer_part = (match (nt s) with
+        | ((list1, list2), list3) -> (List.append list1 list2, list3)) in
+  integer_part;;
+      
+                                      
+
+
+
+
+(*let number_plus a b = 
+  match a, b with
+  | Int(a), Int(b) -> a + b
+  | Int(a), Float(b) -> float(a) +. b
+  | Float(a), Int(b) -> a +. float(b)
+  | Float(a), Float(b) -> a +. b
+
+let number_mul a b = 
+  match a, b with
+  | Int(a), Int(b) -> a * b
+  | Int(a), Float(b) -> float(a) *. b
+  | Float(a), Int(b) -> a *. float(b)
+  | Float(a), Float(b) -> a *. b
+  
+
+
+let nt_number s = 
+  let first = (function (e, _) -> e) in
+  let make_digits = fun ch -> ((Char.code ch) - (Char.code '0')) in
+  let nt = (star (range '0' '9')) in                                                       
+  let char_num = nt (string_to_list s) in
+  let num_list = List.map make_digits (first char_num) in
+  let nt = Number(List.fold_left (fun a b -> number_plus (number_mul 10 a) b) 0 num_list) in
+nt;;*)
+
+
+
+
+
+
+  
+ 
+
+
+
 
 end;; (* end of struct PC *)
 
