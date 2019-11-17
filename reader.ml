@@ -1,7 +1,6 @@
 
 #use "pc.ml";;
 open PC;;
-open Reader;;
 
 exception X_not_yet_implemented;;
 exception X_this_should_not_happen;;
